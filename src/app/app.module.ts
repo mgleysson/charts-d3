@@ -6,12 +6,14 @@ import { AppComponent } from './app.component';
 import {HttpClientModule} from '@angular/common/http';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { LineChart2Component } from './line-chart-2/line-chart-2.component';
+import { LineChartTest3Component } from './line-chart-test3/line-chart-test3.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LineChartComponent,
-    LineChart2Component
+    LineChart2Component,
+    LineChartTest3Component,
   ],
   imports: [
     BrowserModule,
