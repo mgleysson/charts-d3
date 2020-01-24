@@ -14,7 +14,7 @@ export class LineChartTest3Component implements OnInit, OnDestroy {
     private lineChart: SVGLineChart;
 
     private timer;
-    private timeRate = 7000;
+    private timeRate = 2000;
     private timeDelta = 0;
     private timeLast = 0;
 
@@ -61,7 +61,7 @@ export class LineChartTest3Component implements OnInit, OnDestroy {
 export class SVGLineChart {
     params;
     private timer;
-    private timeRate = 5000;
+    private timeRate = 2000;
     private timeDelta = 0;
     private timeLast = 0;
 
