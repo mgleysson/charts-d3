@@ -11,6 +11,7 @@ export class LineChartTest3Component implements OnInit, OnDestroy {
 
     constructor() {
     }
+
     private lineChart: SVGLineChart;
 
     private timer;
@@ -19,6 +20,8 @@ export class LineChartTest3Component implements OnInit, OnDestroy {
     private timeLast = 0;
 
     ngOnInit() {
+
+
         const svg = d3.select('svg').append('g')
             .attr('transform', `translate(${70}, ${5})`);
 
