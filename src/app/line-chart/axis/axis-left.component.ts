@@ -1,5 +1,4 @@
-import {AfterViewInit, Component, ElementRef, HostBinding, HostListener, Input, OnInit, ViewChild} from '@angular/core';
-import {Segment} from '../models/segment';
+import {AfterViewInit, Component, ElementRef, HostBinding, HostListener, Input, ViewChild} from '@angular/core';
 import * as d3 from 'd3';
 import {Behavior2Service} from '../../behavior/behavior2.service';
 
@@ -20,15 +19,22 @@ export class AxisLeftComponent implements AfterViewInit {
     width: number;
     height: number;
 
+    axisY: any;
+    scaleY: any;
+    zoom: any;
+
     @HostBinding('attr.ngNoHost') noHost = '';
+
 
     constructor(private behaviorService: Behavior2Service) {
     }
 
 
     ngAfterViewInit(): void {
+        // this.behaviorService.applyZoomableBehaviour(this.axisLeft.nativeElement, this.svg);
         this.setScale();
     }
+
 
     @HostListener('window:resize', ['$event'])
     onResize(event: Event): void {
@@ -39,12 +45,28 @@ export class AxisLeftComponent implements AfterViewInit {
         this.width = this.svg.clientWidth;
         this.height = this.svg.clientHeight;
 
-        const x = d3.scaleLinear().domain([0, 100]).range([this.height, 0]);
-        d3.select(this.axisLeft.nativeElement).call(d3.axisLeft(x));
+        this.scaleY = d3.scaleLinear().domain([0, 100]).range([this.height, 0]);
+        this.axisY = d3.axisLeft(this.scaleY);
+        d3.select(this.axisLeft.nativeElement).call(this.axisY);
+        // d3.select(this.axisLeft.nativeElement).call(this.zoomAxis());
     }
 
     translate() {
-        return `translate(25, -10)`;
+        return `scale(${0.95}) translate(45, 20)`;
+    }
+
+    zoomAxis() {
+        this.zoom = d3.zoom().on('zoom', this.zoomFunction());
+    }
+
+    zoomFunction() {
+        // create new scale ojects based on event
+        this.scaleY = d3.event.transform.rescaleY(this.scaleY);
+        this.axisY = d3.axisLeft(this.scaleY);
+
+        // update axes
+        // gY.call(yAxis.scale(yAxisScale));
+        d3.select(this.axisLeft.nativeElement).call(this.axisY);
     }
 
 }

@@ -9,6 +9,7 @@ import { LineChart2Component } from './initial-charts/line-chart-2/line-chart-2.
 import { LineChartTest3Component } from './initial-charts/line-chart-test3/line-chart-test3.component';
 import { LineChartTest4Component } from './initial-charts/line-chart-test4/line-chart-test4.component';
 import {LineChartModule} from './line-chart/line-chart.module';
+import { ZoomExampleComponent } from './initial-charts/zoom-example/zoom-example.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import {LineChartModule} from './line-chart/line-chart.module';
     LineChartComponent,
     LineChart2Component,
     LineChartTest3Component,
-    LineChartTest4Component
+    LineChartTest4Component,
+    ZoomExampleComponent
   ],
     imports: [
         BrowserModule,

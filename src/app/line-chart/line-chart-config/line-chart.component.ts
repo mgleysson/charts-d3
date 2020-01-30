@@ -1,7 +1,9 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
-import { Segment } from '../models/segment';
-import { Point } from '../models/pointCoord';
-import { LineChart } from './line-chart';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, Input, OnInit} from '@angular/core';
+import {Segment} from '../models/segment';
+import {Point} from '../models/pointCoord';
+import {LineChart} from './line-chart';
+import * as d3 from 'd3';
+import {range} from 'rxjs';
 
 
 @Component({
@@ -9,13 +11,17 @@ import { LineChart } from './line-chart';
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <svg #svg [attr.width]="_options.width" [attr.height]="_options.height">
-            <edg-axis-left [svg]="svg"></edg-axis-left>
-            <edg-axis-bottom [svg]="svg"></edg-axis-bottom>
+            <g>
+                <edg-axis-bottom [svg]="svg"></edg-axis-bottom>
+            </g>
+            <g>
+                <edg-axis-left [svg]="svg"></edg-axis-left>
+            </g>
             <g [edgZoomableOf]="svg">
-                <edg-segment *ngFor="let segment of segments" class="segment" [segment]="segment"></edg-segment>
-                <g *ngFor="let point of points" [edgDraggablePoint]="point" [draggableInLineChart]="lineChart">
-                    <edg-point [point]="point" [options]="{r: 10}"/>
-                </g>
+                <!--                <edg-segment *ngFor="let segment of segments" class="segment" [segment]="segment"></edg-segment>-->
+                <!--                <g *ngFor="let point of points" [edgDraggablePoint]="point" [draggableInLineChart]="lineChart">-->
+                <!--                    <edg-point [point]="point" [options]="{r: 20}"/>-->
+                <!--                </g>-->
             </g>
         </svg>
     `
@@ -27,15 +33,38 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
     lineChart: LineChart;
 
-    private options: { width, height } = { width: 800, height: 600 };
+    svg: any;
+    labelX: any;
+    labelY: any;
+    line: any;
+    rect: any;
 
-    constructor(private changeDetectorRef: ChangeDetectorRef) { }
+    private options: { width, height } = {width: 800, height: 600};
+
+    constructor(private changeDetectorRef: ChangeDetectorRef) {
+    }
 
     ngOnInit(): void {
 
-        // this.simpleAxes();
+        // d3.select('body').style('background', 'gray');
 
-        for (let i = 1; i <= 5; i++) {
+        this.svg = d3.select('svg');
+
+        this.svg.attr('transform', 'translate(50,50)');
+
+        this.line = this.svg.append('g');
+        this.rect = this.svg.append('g');
+
+        this.initLine();
+        this.initRects();
+
+        // this.svg.style('background', 'lightgray');
+
+        this.labelX = this.svg.append('g').append('text');
+        this.labelY = this.svg.append('g').append('text');
+
+
+        for (let i = 1; i <= 3; i++) {
             this.points.push(new Point(i.toString()));
         }
 
@@ -56,59 +85,96 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit(): void {
         this.lineChart.initSimulation(this._options);
+        this.configChart();
+    }
+
+    @HostListener('window:resize', ['$event'])
+    onResize(event: Event): void {
+        this.configChart();
     }
 
     get _options(): { width, height } {
+        const margin = {top: 70, right: 70, bottom: 70, left: 70};
         return this.options = {
-            width: window.innerWidth,
-            height: window.innerHeight
+            width: window.innerWidth - margin.left - margin.right,
+            height: window.innerHeight - margin.top - margin.bottom
         };
     }
 
-    // simpleAxes() {
-    //     let element = this.chartContainer.nativeElement;
-    //     let width:number = 300;
-    //     let height:number = 300;
-    //     let yPad:number = 50;
-    //     let xPad:number = 50;
-    //     let xTicks:number = 10;
-    //     let yTicks:number = 10;
-    //
-    //     let xValues = [75, 250, 350, 120, 600, 450, 125, 850];
-    //     let yValues = [25, 150, 250, 320, 400, 550, 325, 815];
-    //
-    //     // Step 1: create an svg element
-    //     let svg:any = d3.select(element)
-    //         .append("svg")
-    //         .attr("width", width)
-    //         .attr("height", height);
-    //
-    //     // Step 2: define the x and y scales
-    //     let xScale = d3.scaleLinear()
-    //         .domain([0, d3.max(xValues)])
-    //         .range([xPad, width - xPad]);
-    //
-    //     let yScale = d3.scaleLinear()
-    //         .domain([0, d3.max(yValues)])
-    //         .range([height - yPad, yPad]);
-    //
-    //     // Step 3: define the x and y axes
-    //     let xAxis = d3.axisBottom(xScale)
-    //         .ticks(xTicks);
-    //
-    //     let yAxis = d3.axisLeft(yScale)
-    //         .ticks(yTicks);
-    //
-    //     // Step 4: render the axes
-    //     svg.append("g")
-    //         .attr("class", "xaxis")
-    //         .attr("transform", "translate(0, " + (height-yPad) + ")")
-    //         .call(xAxis);
-    //
-    //     svg.append("g")
-    //         .attr("class", "yaxis")
-    //         .attr("transform", "translate(" + xPad + ",0)")
-    //         .call(yAxis)
-    // }
+    configChart() {
+        // text label for the x axis
+        this.labelX.attr('transform',
+            'translate(' + (this._options.width / 2) + ' ,' +
+            (this._options.height - 5) + ')')
+            .attr('text-anchor', 'end')
+            .text('label-x');
+
+        // text label for the y axis
+        this.labelY.attr('transform', 'translate(15,' + (this._options.height / 2) + ') rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .text('label y');
+
+        // // insert lines
+        //     for (let i = 0; i < 9; i++) {
+        //         this.line.append('line').attr('x1', 45)
+        //             .attr('y1', 732 - 80 * i)
+        //             .attr('x2', this._options.width)
+        //             .attr('y2', 732 - 80 * i)
+        //             .attr('stroke', 'gray');
+        //     }
+    }
+
+    initLine() {
+        //  insert line
+        this.line.append('line').attr('x1', 250)
+            .attr('y1', 28)
+            .attr('x2', 750)
+            .attr('y2', 28)
+            .attr('stroke', 'black');
+
+    }
+
+    initRects() {
+
+        for (let i = 0; i < 2; i++) {
+            this.rect.append('rect')
+                .attr('transform', 'translate(' + (300 + 400 * i) + ', 30)')
+                .attr('width', 20)
+                .attr('height', 150)
+                .attr('fill', 'lightgray');
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.rect.append('rect')
+                .attr('transform', 'translate(' + (350 + 300 * i) + ', 250)')
+                .attr('width', 20)
+                .attr('height', 120)
+                .attr('fill', 'lightgray');
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.rect.append('rect')
+                .attr('transform', 'translate(' + (350 + 300 * i) + ', 450)')
+                .attr('width', 20)
+                .attr('height', 80)
+                .attr('fill', 'lightgray');
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.rect.append('rect')
+                .attr('transform', 'translate(' + (400 + 200 * i) + ', 550)')
+                .attr('width', 20)
+                .attr('height', 150)
+                .attr('fill', 'lightgray');
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.rect.append('rect')
+                .attr('transform', 'translate(' + (420 + 160 * i) + ', 650)')
+                .attr('width', 20)
+                .attr('height', 150)
+                .attr('fill', 'lightgray');
+        }
+    }
 
 }
