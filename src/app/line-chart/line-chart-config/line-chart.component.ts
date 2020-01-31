@@ -15,13 +15,14 @@ import {range} from 'rxjs';
                 <edg-axis-bottom [svg]="svg"></edg-axis-bottom>
             </g>
             <g>
-                <edg-axis-left [svg]="svg"></edg-axis-left>
+                <edg-axis-left [svg]="svg" [scaleY]="y"></edg-axis-left>
             </g>
             <g [edgZoomableOf]="svg">
                 <!--                <edg-segment *ngFor="let segment of segments" class="segment" [segment]="segment"></edg-segment>-->
                 <!--                <g *ngFor="let point of points" [edgDraggablePoint]="point" [draggableInLineChart]="lineChart">-->
                 <!--                    <edg-point [point]="point" [options]="{r: 20}"/>-->
                 <!--                </g>-->
+                <line [attr.x1]="10" [attr.y1]="y(10)" [attr.x2]="400" [attr.y2]="y(400)" stroke="black" stroke-dasharray="3, 3" stroke-width="10"></line>
             </g>
         </svg>
     `
@@ -34,15 +35,21 @@ export class LineChartComponent implements OnInit, AfterViewInit {
     lineChart: LineChart;
 
     svg: any;
+    chartView: any;
     labelX: any;
     labelY: any;
     line: any;
     rect: any;
 
     private options: { width, height } = {width: 800, height: 600};
+    private rectProf: any;
+    private verticalLines: any;
+    private dashedLines: any;
+    private triangles: any;
 
-    constructor(private changeDetectorRef: ChangeDetectorRef) {
-    }
+    y = d3.scaleLinear();
+
+    constructor(private changeDetectorRef: ChangeDetectorRef) { }
 
     ngOnInit(): void {
 
@@ -52,11 +59,18 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
         this.svg.attr('transform', 'translate(50,50)');
 
-        this.line = this.svg.append('g');
-        this.rect = this.svg.append('g');
+        this.line = this.svg.append('g').attr('class', 'horiz-line');
+        this.rect = this.svg.append('g').attr('class', 'rect');
+        this.rectProf = this.svg.append('g').attr('class', 'rectProf');
+        this.verticalLines = this.svg.append('g').attr('class', 'vert-lines');
+        this.dashedLines = this.svg.append('g').attr('class', 'dashed-lines');
+        this.triangles = this.svg.append('g').attr('class', 'triangles');
 
-        this.initLine();
-        this.initRects();
+        this.drawLineTop();
+        this.drawRects();
+        this.drawRectProf();
+        this.drawVerticalLines();
+        this.drawTriangles();
 
         // this.svg.style('background', 'lightgray');
 
@@ -91,6 +105,25 @@ export class LineChartComponent implements OnInit, AfterViewInit {
     @HostListener('window:resize', ['$event'])
     onResize(event: Event): void {
         this.configChart();
+        this.rect.remove();
+        this.line.remove();
+        this.rectProf.remove();
+        this.verticalLines.remove();
+        this.triangles.remove();
+        this.update();
+    }
+
+    private update() {
+        this.rect = this.svg.append('g').attr('class', 'rect');
+        this.line = this.svg.append('g').attr('class', 'lines');
+        this.rectProf = this.svg.append('g').attr('class', 'rectProf');
+        this.verticalLines = this.svg.append('g').attr('class', 'vert-lines');
+        this.triangles = this.svg.append('g').attr('class', 'triangles');
+        this.drawRects();
+        this.drawLineTop();
+        this.drawRectProf();
+        this.drawVerticalLines();
+        this.drawTriangles();
     }
 
     get _options(): { width, height } {
@@ -124,21 +157,81 @@ export class LineChartComponent implements OnInit, AfterViewInit {
         //     }
     }
 
-    initLine() {
-        //  insert line
-        this.line.append('line').attr('x1', 250)
-            .attr('y1', 28)
-            .attr('x2', 750)
-            .attr('y2', 28)
-            .attr('stroke', 'black');
-
-    }
-
-    initRects() {
+    drawLineTop() {
+        //  insert line top
+        this.line.append('line')
+            .attr('x1', this._options.width / 2 - 75)
+            .attr('y1', 50)
+            .attr('x2', this._options.width / 2 + 185)
+            .attr('y2', 50)
+            .attr('stroke', 'black')
+            .attr('stroke-width', 4);
 
         for (let i = 0; i < 2; i++) {
+            this.line.append('line')
+                .attr('x1', this._options.width / 2 + 12 + 65 * i)
+                .attr('y1', 673)
+                .attr('x2', this._options.width / 2 + 32 + 65 * i)
+                .attr('y2', 673)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 3);
+        }
+    }
+
+    drawRectProf() {
+        this.rectProf.append('rect')
+            .attr('transform', 'translate(' + (this._options.width / 2 - 95) + ', 10)')
+            .attr('width', 20)
+            .attr('height', this._options.height - 70)
+            .attr('fill', 'lightblue');
+    }
+
+    drawVerticalLines() {
+        for (let i = 0; i < 2; i++) {
+            this.verticalLines.append('line')
+                .attr('x1', (this._options.width / 2) - 30 + 170 * i)
+                .attr('y1', 52)
+                .attr('x2', (this._options.width / 2) - 30 + 170 * i)
+                .attr('y2', 200)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.verticalLines.append('line')
+                .attr('x1', (this._options.width / 2) - 8 + 128 * i)
+                .attr('y1', 52)
+                .attr('x2', (this._options.width / 2) - 8 + 128 * i)
+                .attr('y2', 530)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.verticalLines.append('line')
+                .attr('x1', (this._options.width / 2) + 12 + 86 * i)
+                .attr('y1', 52)
+                .attr('x2', (this._options.width / 2) + 12 + 86 * i)
+                .attr('y2', 700)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+        }
+
+        for (let i = 0; i < 2; i++) {
+            this.verticalLines.append('line')
+                .attr('x1', (this._options.width / 2) + 32 + 46 * i)
+                .attr('y1', 675)
+                .attr('x2', (this._options.width / 2) + 32 + 46 * i)
+                .attr('y2', 775)
+                .attr('stroke', 'black')
+                .attr('stroke-width', 1);
+        }
+    }
+
+    drawRects() {
+        for (let i = 0; i < 2; i++) {
             this.rect.append('rect')
-                .attr('transform', 'translate(' + (300 + 400 * i) + ', 30)')
+                .attr('transform', 'translate(' + ((this._options.width / 2) - 50 + 190 * i) + ', 52)')
                 .attr('width', 20)
                 .attr('height', 150)
                 .attr('fill', 'lightgray');
@@ -146,7 +239,7 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
         for (let i = 0; i < 2; i++) {
             this.rect.append('rect')
-                .attr('transform', 'translate(' + (350 + 300 * i) + ', 250)')
+                .attr('transform', 'translate(' + ((this._options.width / 2) - 30 + 150 * i) + ', 270)')
                 .attr('width', 20)
                 .attr('height', 120)
                 .attr('fill', 'lightgray');
@@ -154,7 +247,7 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
         for (let i = 0; i < 2; i++) {
             this.rect.append('rect')
-                .attr('transform', 'translate(' + (350 + 300 * i) + ', 450)')
+                .attr('transform', 'translate(' + ((this._options.width / 2) - 30 + 150 * i) + ', 450)')
                 .attr('width', 20)
                 .attr('height', 80)
                 .attr('fill', 'lightgray');
@@ -162,7 +255,7 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
         for (let i = 0; i < 2; i++) {
             this.rect.append('rect')
-                .attr('transform', 'translate(' + (400 + 200 * i) + ', 550)')
+                .attr('transform', 'translate(' + ((this._options.width / 2) - 10 + 110 * i) + ', 550)')
                 .attr('width', 20)
                 .attr('height', 150)
                 .attr('fill', 'lightgray');
@@ -170,11 +263,56 @@ export class LineChartComponent implements OnInit, AfterViewInit {
 
         for (let i = 0; i < 2; i++) {
             this.rect.append('rect')
-                .attr('transform', 'translate(' + (420 + 160 * i) + ', 650)')
+                .attr('transform', 'translate(' + ((this._options.width / 2) + 10 + 70 * i) + ', 675)')
                 .attr('width', 20)
-                .attr('height', 150)
+                .attr('height', 100)
                 .attr('fill', 'lightgray');
         }
     }
 
+
+    private drawTriangles() {
+
+        this.triangles.append('polygon')
+            .attr('transform', 'translate(' + ((this._options.width / 2) - 140) + ', 153)')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1)
+            .attr('points', '100,48, 110,40, 110,48')
+            .attr('fill', 'black');
+
+        this.triangles.append('polygon')
+            .attr('transform', 'translate(' + ((this._options.width / 2) - 140 + 180) + ', 153)')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1)
+            .attr('points', '100,40, 100,48, 110,48')
+            .attr('fill', 'black');
+
+        this.triangles.append('polygon')
+            .attr('transform', 'translate(' + ((this._options.width / 2) - 118) + ', 482)')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1)
+            .attr('points', '100,48, 110,40, 110,48')
+            .attr('fill', 'black');
+
+        this.triangles.append('polygon')
+            .attr('transform', 'translate(' + ((this._options.width / 2) - 160 + 180) + ', 482)')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1)
+            .attr('points', '100,40, 100,48, 110,48')
+            .attr('fill', 'black');
+
+        this.triangles.append('polygon')
+            .attr('transform', 'translate(' + ((this._options.width / 2) - 118) + ', 482)')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1)
+            .attr('points', '100,48, 110,40, 110,48')
+            .attr('fill', 'black');
+
+        this.triangles.append('polygon')
+            .attr('transform', 'translate(' + ((this._options.width / 2) - 160 + 180) + ', 482)')
+            .attr('stroke', 'black')
+            .attr('stroke-width', 1)
+            .attr('points', '100,40, 100,48, 110,48')
+            .attr('fill', 'black');
+    }
 }

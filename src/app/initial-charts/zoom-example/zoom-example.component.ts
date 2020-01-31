@@ -48,6 +48,8 @@ export class ZoomExampleComponent implements OnInit {
         const xAxis = d3.axisBottom(xAxisScale);
         const yAxis = d3.axisLeft(yAxisScale);
 
+        console.log(xAxis);
+
 // Zoom Function
         const zoom = d3.zoom()
             .on('zoom', zoomFunction);
